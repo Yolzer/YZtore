@@ -18,6 +18,7 @@ body {
 .product-card {
     transition: transform 0.3s ease;
     margin-bottom: 20px;
+    height: 100%;
 }
 
 .product-card:hover {
@@ -71,14 +72,147 @@ footer a:hover {
     color: #007bff !important;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive Grid System */
+/* Móvil pequeño (xs) - hasta 576px */
+@media (max-width: 576px) {
     .hero-section {
-        text-align: center;
         padding: 50px 0;
+        text-align: center;
     }
     
     .hero-section img {
         margin-top: 30px;
+    }
+    
+    .product-card {
+        margin-bottom: 15px;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .d-flex {
+        flex-direction: column;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}
+
+/* Tablet (md) - 768px a 992px */
+@media (min-width: 768px) and (max-width: 992px) {
+    .hero-section {
+        padding: 75px 0;
+    }
+    
+    .product-card {
+        margin-bottom: 20px;
+    }
+    
+    .col-md-4 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    
+    .navbar-nav {
+        margin: 10px 0;
+    }
+    
+    .d-flex {
+        flex-direction: row;
+    }
+    
+    .btn {
+        margin: 0 5px;
+    }
+}
+
+/* Desktop (lg) - 992px y superior */
+@media (min-width: 992px) {
+    .hero-section {
+        padding: 100px 0;
+    }
+    
+    .product-card {
+        margin-bottom: 30px;
+    }
+    
+    .col-lg-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+    
+    .navbar-nav {
+        margin: 0;
+    }
+    
+    .d-flex {
+        flex-direction: row;
+    }
+    
+    .btn {
+        margin: 0 5px;
+    }
+}
+
+/* Ajustes para el carrito */
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+    }
+    
+    .carrito-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .carrito-item .btn {
+        margin: 5px 0;
+    }
+}
+
+/* Ajustes para el panel de administración */
+@media (max-width: 768px) {
+    .table-responsive {
+        margin: 0 -15px;
+    }
+    
+    .table td, .table th {
+        white-space: nowrap;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+        margin: 2px 0;
+    }
+}
+
+/* Ajustes para el formulario de login */
+@media (max-width: 576px) {
+    .card {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .form-control {
+        margin-bottom: 10px;
+    }
+    
+    .btn-primary {
+        width: 100%;
     }
 } 
