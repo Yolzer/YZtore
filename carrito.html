@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras - YZtore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">YZtore</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="juegos.html">Juegos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="ofertas.html">Ofertas</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="carrito.html" class="btn btn-outline-light me-2">
+                        <i class="bi bi-cart"></i> Carrito
+                    </a>
+                    <a href="login.html" class="btn btn-outline-light" id="loginBtn">Iniciar Sesión</a>
+                    <a href="perfil.html" class="btn btn-outline-light d-none" id="perfilBtn">Mi Cuenta</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Carrito de Compras</h1>
+        
+        <div class="row">
+            <!-- Lista de Productos -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="carritoItems">
+                            <!-- Los items se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen de Compra -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Resumen de Compra</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>IVA (16%):</span>
+                            <span id="iva">$0.00</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>Total:</strong>
+                            <strong id="total">$0.00</strong>
+                        </div>
+                        <button class="btn btn-primary w-100" onclick="procederAlPago()">
+                            Proceder al Pago
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Función para actualizar el resumen de compra
+        function actualizarResumen() {
+            const subtotal = carrito.reduce((total, item) => total + item.subtotal, 0);
+            const iva = subtotal * 0.16;
+            const total = subtotal + iva;
+
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('iva').textContent = `$${iva.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Función para proceder al pago
+        function procederAlPago() {
+            if (carrito.length === 0) {
+                alert('Tu carrito está vacío.');
+                return;
+            }
+
+            // Simular proceso de pago
+            alert('¡Compra realizada con éxito!');
+            
+            // Limpiar carrito
+            carrito = [];
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            
+            // Redirigir a la página principal
+            window.location.href = 'index.html';
+        }
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarCarrito();
+            actualizarResumen();
+            actualizarEstadoAutenticacion();
+        });
+    </script>
+</body>
+</html> 

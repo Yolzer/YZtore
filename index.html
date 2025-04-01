@@ -15,60 +15,71 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">YZtore</a>
+            <a class="navbar-brand" href="index.html">YZtore</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Inicio</a>
+                        <a class="nav-link" href="juegos.html">Juegos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#juegos">Juegos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#ofertas">Ofertas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#mi-cuenta">Mi Cuenta</a>
+                        <a class="nav-link" href="ofertas.html">Ofertas</a>
                     </li>
                 </ul>
                 <div class="d-flex">
-                    <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#carritoModal">
-                        <i class="fas fa-shopping-cart"></i> Carrito
-                        <span class="badge bg-primary" id="carritoCantidad">0</span>
-                    </button>
-                    <button class="btn btn-primary" id="btnLogin" onclick="window.location.href='login.html'">
-                        <i class="fas fa-user"></i> Iniciar Sesión
-                    </button>
+                    <a href="carrito.html" class="btn btn-outline-light me-2 position-relative">
+                        <i class="bi bi-cart"></i> Carrito
+                        <span id="contadorCarrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                            0
+                        </span>
+                    </a>
+                    <a href="login.html" class="btn btn-outline-light" id="loginBtn">Iniciar Sesión</a>
+                    <a href="perfil.html" class="btn btn-outline-light d-none" id="perfilBtn">Mi Cuenta</a>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <div class="hero-section py-5">
+    <section class="hero-section text-center">
         <div class="container">
             <div class="row align-items-center">
-                <div class="col-12 col-md-6">
-                    <h1 class="display-4 fw-bold">Tu tienda de códigos digitales</h1>
-                    <p class="lead">Compra códigos de juegos y productos virtuales de forma segura y rápida</p>
-                    <button class="btn btn-primary btn-lg">Explorar Juegos</button>
+                <div class="col-md-6">
+                    <h1>Bienvenido a YZtore</h1>
+                    <p class="lead">Tu destino para códigos de juegos y productos virtuales</p>
+                    <a href="juegos.html" class="btn btn-primary btn-lg">Explorar Juegos</a>
                 </div>
-                <div class="col-12 col-md-6">
-                    <img src="img/hero/doom.jpg" alt="Doom Eternal - Juego Principal" class="img-fluid rounded shadow">
+                <div class="col-md-6">
+                    <img src="img/hero/doom.jpg" alt="Doom" class="img-fluid rounded">
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Featured Products -->
-    <section class="featured-products py-5">
+    <!-- Sección de Productos -->
+    <section class="productos-section py-5">
         <div class="container">
             <h2 class="text-center mb-4">Productos Destacados</h2>
-            <div class="row g-4" id="featured-products">
-                <!-- Los productos se cargarán dinámicamente con JavaScript -->
+            <div class="row" id="productos-container">
+                <!-- Los productos se cargarán dinámicamente -->
+            </div>
+            <div class="text-center mt-4">
+                <a href="juegos.html" class="btn btn-primary">Ver Todos los Juegos</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Ofertas -->
+    <section class="ofertas-section py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-4">Ofertas Especiales</h2>
+            <div class="row" id="ofertas-container">
+                <!-- Las ofertas se cargarán dinámicamente -->
+            </div>
+            <div class="text-center mt-4">
+                <a href="ofertas.html" class="btn btn-primary">Ver Todas las Ofertas</a>
             </div>
         </div>
     </section>
@@ -129,5 +140,52 @@
     <!-- Custom JS -->
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
+    <script>
+        // Cargar productos destacados
+        function cargarProductosDestacados() {
+            const container = document.getElementById('productos-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+            // Mostrar solo los primeros 3 productos como destacados
+            productos.slice(0, 3).forEach(producto => {
+                const card = crearProductoCard(producto);
+                container.appendChild(card);
+            });
+        }
+
+        // Cargar ofertas
+        function cargarOfertas() {
+            const container = document.getElementById('ofertas-container');
+            if (!container) return;
+
+            const ofertas = [
+                {
+                    id: 4,
+                    nombre: "Monster Hunter Wilds",
+                    precio: 50.00,
+                    precioOriginal: 60.00,
+                    imagen: "img/productos/monster hunter wilds.jpg",
+                    plataforma: "Steam",
+                    descripcion: "La nueva entrega de la saga Monster Hunter. Caza monstruos gigantes en un mundo dinámico y peligroso.",
+                    stock: 12,
+                    descuento: 10
+                }
+            ];
+
+            container.innerHTML = '';
+            ofertas.forEach(oferta => {
+                const card = crearProductoCard(oferta, true);
+                container.appendChild(card);
+            });
+        }
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarProductosDestacados();
+            cargarOfertas();
+            actualizarEstadoAutenticacion();
+        });
+    </script>
 </body>
 </html> 

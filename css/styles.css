@@ -40,15 +40,61 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-.product-card img {
+.image-container {
+    position: relative;
+    overflow: hidden;
     height: 250px;
+}
+
+.product-card img {
     width: 100%;
+    height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.5s ease;
 }
 
 .product-card:hover img {
-    transform: scale(1.05);
+    transform: scale(1.1);
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.product-card:hover .image-overlay {
+    opacity: 1;
+}
+
+.overlay-content {
+    color: white;
+    text-align: center;
+    padding: 20px;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .overlay-content {
+    transform: translateY(0);
+}
+
+.overlay-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.overlay-content p {
+    font-size: 0.9rem;
+    margin: 0;
 }
 
 .product-card .card-body {
@@ -57,6 +103,45 @@ body {
 
 .product-price {
     font-size: 1.25rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+/* Ofertas */
+.ofertas-section {
+    background-color: #f8f9fa;
+}
+
+.badge.bg-danger {
+    font-size: 0.9rem;
+    padding: 0.5em 0.75em;
+}
+
+/* Carrito */
+.carrito-items {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.carrito-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.carrito-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin-right: 1rem;
+}
+
+.carrito-item-info {
+    flex-grow: 1;
+}
+
+.carrito-item-precio {
     font-weight: bold;
     color: #28a745;
 }
@@ -238,5 +323,20 @@ footer a:hover {
     
     .btn-primary {
         width: 100%;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 50px 0;
+    }
+    
+    .hero-section img {
+        max-height: 300px;
+    }
+    
+    .product-card img {
+        height: 200px;
     }
 } 
