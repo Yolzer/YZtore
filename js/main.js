@@ -4,28 +4,28 @@ const productos = [
         id: 1,
         nombre: "The Witcher 3: Wild Hunt",
         precio: 29.99,
-        imagen: "https://via.placeholder.com/300x200",
-        plataforma: "Steam",
-        descripcion: "Juego de rol de mundo abierto galardonado",
-        stock: 10
+        imagen: "img/productos/witcher3.jpg",
+        plataforma: "GOG",
+        descripcion: "El RPG de fantasía más aclamado de la década",
+        stock: 15
     },
     {
         id: 2,
-        nombre: "Red Dead Redemption 2",
-        precio: 59.99,
-        imagen: "https://via.placeholder.com/300x200",
-        plataforma: "Epic Games",
-        descripcion: "Aventura del Salvaje Oeste",
-        stock: 5
-    },
-    {
-        id: 3,
         nombre: "Cyberpunk 2077",
         precio: 39.99,
-        imagen: "https://via.placeholder.com/300x200",
+        imagen: "img/productos/cyberpunk.jpg",
         plataforma: "GOG",
         descripcion: "RPG de acción y aventura futurista",
         stock: 8
+    },
+    {
+        id: 3,
+        nombre: "Red Dead Redemption 2",
+        precio: 59.99,
+        imagen: "img/productos/rdr2.jpg",
+        plataforma: "Epic Games",
+        descripcion: "Aventura del Salvaje Oeste",
+        stock: 5
     }
 ];
 

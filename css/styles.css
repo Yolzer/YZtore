@@ -14,21 +14,45 @@ body {
     margin-bottom: 20px;
 }
 
+.hero-section img {
+    max-height: 400px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.hero-section img:hover {
+    transform: scale(1.02);
+}
+
 /* Productos */
 .product-card {
     transition: transform 0.3s ease;
     margin-bottom: 20px;
     height: 100%;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .product-card img {
-    height: 200px;
+    height: 250px;
+    width: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover img {
+    transform: scale(1.05);
+}
+
+.product-card .card-body {
+    padding: 1.25rem;
 }
 
 .product-price {
