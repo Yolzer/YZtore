@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
+from django.utils import timezone
+from decimal import Decimal
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -22,9 +24,7 @@ class CustomUserManager(BaseUserManager):
 
 class Role(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
-    descripcion = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    descripcion = models.TextField(default='', blank=True)
 
     def __str__(self):
         return self.nombre
@@ -33,13 +33,14 @@ class Role(models.Model):
         db_table = 'roles'
 
 class CustomUser(AbstractUser):
-    email = models.EmailField(_('email address'), unique=True)
+    email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=True)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
+    fecha_registro = models.DateTimeField(default=timezone.now)
 
     objects = CustomUserManager()
 
@@ -128,22 +129,17 @@ class PedidoItem(models.Model):
         db_table = 'pedido_items'
 
 class TokenRecuperacion(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     token = models.CharField(max_length=100, unique=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now)
     fecha_expiracion = models.DateTimeField()
 
     def __str__(self):
-        return f"Token para {self.user.email}"
+        return f"Token para {self.user.username}"
 
 class PerfilUsuario(models.Model):
-    ROLES = (
-        ('cliente', 'Cliente'),
-        ('admin', 'Administrador'),
-    )
-    
-    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    rol = models.CharField(max_length=20, choices=ROLES, default='cliente')
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    rol = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
     telefono = models.CharField(max_length=15, blank=True)
     direccion = models.TextField(blank=True)
     fecha_nacimiento = models.DateField(null=True, blank=True)
@@ -151,54 +147,48 @@ class PerfilUsuario(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.usuario.username} - {self.rol}"
+        return f"Perfil de {self.user.username}"
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+@receiver(post_save, sender=CustomUser)
 def crear_perfil_usuario(sender, instance, created, **kwargs):
     if created:
-        PerfilUsuario.objects.create(usuario=instance)
-        # Asignar grupo por defecto
-        grupo_cliente = Group.objects.get_or_create(name='Cliente')[0]
-        instance.groups.add(grupo_cliente)
+        PerfilUsuario.objects.create(user=instance)
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+@receiver(post_save, sender=CustomUser)
 def guardar_perfil_usuario(sender, instance, **kwargs):
-    instance.perfilusuario.save()
+    try:
+        instance.perfilusuario.save()
+    except PerfilUsuario.DoesNotExist:
+        PerfilUsuario.objects.create(user=instance)
 
 class Juego(models.Model):
-    CATEGORIAS = (
+    CATEGORIAS = [
         ('accion', 'Acción'),
         ('aventura', 'Aventura'),
         ('rpg', 'RPG'),
         ('estrategia', 'Estrategia'),
-        ('deportes', 'Deportes'),
-        ('carreras', 'Carreras'),
-        ('shooter', 'Shooter'),
-        ('indie', 'Indie'),
-    )
+    ]
 
-    nombre = models.CharField(max_length=200)
-    descripcion = models.TextField()
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
-    precio_original = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    descuento = models.IntegerField(default=0)
-    categoria = models.CharField(max_length=20, choices=CATEGORIAS)
-    imagen = models.ImageField(upload_to='juegos/')
-    fecha_lanzamiento = models.DateField()
-    desarrollador = models.CharField(max_length=100)
-    plataforma = models.CharField(max_length=50)
-    stock = models.IntegerField(default=0)
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(default='', blank=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS, default='accion')
+    imagen = models.CharField(max_length=500, default='', blank=True)
     destacado = models.BooleanField(default=False)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    descuento = models.IntegerField(default=0)
+    precio_original = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.nombre
 
+    @property
     def precio_con_descuento(self):
-        if self.descuento > 0:
-            return self.precio - (self.precio * self.descuento / 100)
+        if self.descuento > 0 and self.precio_original:
+            descuento_decimal = Decimal(str(self.descuento)) / Decimal('100')
+            return self.precio_original * (Decimal('1') - descuento_decimal)
         return self.precio
 
     class Meta:
+        db_table = 'juegos'
         ordering = ['-fecha_creacion'] 

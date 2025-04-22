@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tienda',  # Nuestra aplicación principal
+    'tienda.apps.TiendaConfig',  # Asegúrate de que esta línea esté presente
 ]
 
 MIDDLEWARE = [

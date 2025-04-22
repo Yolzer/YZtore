@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
-from .models import PerfilUsuario, Role, CustomUser
+from .models import PerfilUsuario, Role, CustomUser, Juego, TokenRecuperacion
 
 class PerfilUsuarioInline(admin.StackedInline):
     model = PerfilUsuario
@@ -10,17 +10,9 @@ class PerfilUsuarioInline(admin.StackedInline):
 
 class CustomUserAdmin(UserAdmin):
     inlines = (PerfilUsuarioInline,)
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_role')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
-    search_fields = ('username', 'email', 'first_name', 'last_name')
-    ordering = ('username',)
-
-    def get_role(self, obj):
-        try:
-            return obj.perfilusuario.rol
-        except:
-            return 'No definido'
-    get_role.short_description = 'Rol'
+    list_display = ('email', 'username', 'first_name', 'last_name', 'is_staff')
+    search_fields = ('email', 'username', 'first_name', 'last_name')
+    ordering = ('email',)
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
@@ -42,4 +34,7 @@ class GroupAdmin(admin.ModelAdmin):
 
     def get_users_count(self, obj):
         return obj.user_set.count()
-    get_users_count.short_description = 'Usuarios' 
+    get_users_count.short_description = 'Usuarios'
+
+admin.site.register(Juego)
+admin.site.register(TokenRecuperacion) 

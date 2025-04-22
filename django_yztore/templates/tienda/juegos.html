@@ -62,29 +62,31 @@
                 {% for juego in juegos %}
                     <div class="col-md-4 mb-4">
                         <div class="card h-100">
-                            {% if juego.descuento > 0 %}
-                                <div class="position-relative">
-                                    <img src="{{ juego.imagen.url }}" class="card-img-top" alt="{{ juego.nombre }}">
-                                    <span class="position-absolute top-0 end-0 bg-danger text-white p-2">-{{ juego.descuento }}%</span>
+                            <a href="{% url 'tienda:detalle_juego' juego.id %}" class="text-decoration-none text-dark">
+                                {% if juego.descuento > 0 %}
+                                    <div class="position-relative">
+                                        <img src="{{ juego.imagen }}" class="card-img-top" alt="{{ juego.nombre }}" style="height: 300px; object-fit: cover;">
+                                        <span class="position-absolute top-0 end-0 bg-danger text-white p-2">-{{ juego.descuento }}%</span>
+                                    </div>
+                                {% else %}
+                                    <img src="{{ juego.imagen }}" class="card-img-top" alt="{{ juego.nombre }}" style="height: 300px; object-fit: cover;">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ juego.nombre }}</h5>
+                                    <p class="card-text">{{ juego.descripcion|truncatewords:20 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        {% if juego.descuento > 0 %}
+                                            <div>
+                                                <span class="text-decoration-line-through text-muted">${{ juego.precio_original }}</span>
+                                                <span class="h5 mb-0 ms-2 text-danger">${{ juego.precio_con_descuento }}</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="h5 mb-0">${{ juego.precio }}</span>
+                                        {% endif %}
+                                        <a href="{% url 'tienda:detalle_juego' juego.id %}" class="btn btn-primary">Ver Detalles</a>
+                                    </div>
                                 </div>
-                            {% else %}
-                                <img src="{{ juego.imagen.url }}" class="card-img-top" alt="{{ juego.nombre }}">
-                            {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title">{{ juego.nombre }}</h5>
-                                <p class="card-text">{{ juego.descripcion|truncatewords:20 }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    {% if juego.descuento > 0 %}
-                                        <div>
-                                            <span class="text-decoration-line-through text-muted">${{ juego.precio_original }}</span>
-                                            <span class="h5 mb-0 ms-2 text-danger">${{ juego.precio_con_descuento }}</span>
-                                        </div>
-                                    {% else %}
-                                        <span class="h5 mb-0">${{ juego.precio }}</span>
-                                    {% endif %}
-                                    <a href="#" class="btn btn-primary">Ver Detalles</a>
-                                </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
                 {% empty %}

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from datetime import timedelta
-from .models import CustomUser, Role, TokenRecuperacion, Juego
+from .models import CustomUser, Role, TokenRecuperacion, Juego, Carrito, CarritoItem
 from .forms import RegistroForm
 from .models import PerfilUsuario
 from .decorators import admin_required
@@ -184,4 +184,28 @@ def cambiar_rol_usuario(request, user_id):
                 messages.error(request, 'Rol no válido')
         except CustomUser.DoesNotExist:
             messages.error(request, 'Usuario no encontrado')
-    return redirect('tienda:gestion_usuarios') 
+    return redirect('tienda:gestion_usuarios')
+
+def detalle_juego(request, juego_id):
+    juego = get_object_or_404(Juego, id=juego_id)
+    return render(request, 'tienda/detalle_juego.html', {'juego': juego})
+
+def agregar_al_carrito(request, juego_id):
+    if not request.user.is_authenticated:
+        return redirect('tienda:login')
+    
+    juego = get_object_or_404(Juego, id=juego_id)
+    carrito, created = Carrito.objects.get_or_create(usuario=request.user)
+    
+    # Verificar si el juego ya está en el carrito
+    carrito_item, created = CarritoItem.objects.get_or_create(
+        carrito=carrito,
+        producto=juego,
+        defaults={'cantidad': 1, 'precio_unitario': juego.precio}
+    )
+    
+    if not created:
+        carrito_item.cantidad += 1
+        carrito_item.save()
+    
+    return redirect('tienda:carrito') 
