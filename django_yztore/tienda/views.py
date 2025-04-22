@@ -7,19 +7,48 @@ from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from datetime import timedelta
-from .models import CustomUser, Role, TokenRecuperacion
+from .models import CustomUser, Role, TokenRecuperacion, Juego
 from .forms import RegistroForm
 from .models import PerfilUsuario
 from .decorators import admin_required
 
 def inicio(request):
-    return render(request, 'tienda/inicio.html')
+    juegos_destacados = Juego.objects.filter(destacado=True)[:3]
+    juegos_ofertas = Juego.objects.filter(descuento__gt=0)[:3]
+    return render(request, 'tienda/inicio.html', {
+        'juegos_destacados': juegos_destacados,
+        'juegos_ofertas': juegos_ofertas
+    })
 
 def juegos_view(request):
-    return render(request, 'tienda/juegos.html')
+    # Obtener parámetros de filtrado
+    categoria = request.GET.get('categoria')
+    orden = request.GET.get('orden', 'recientes')
+    
+    # Filtrar por categoría
+    juegos = Juego.objects.all()
+    if categoria:
+        juegos = juegos.filter(categoria=categoria)
+    
+    # Ordenar resultados
+    if orden == 'precio_asc':
+        juegos = juegos.order_by('precio')
+    elif orden == 'precio_desc':
+        juegos = juegos.order_by('-precio')
+    elif orden == 'nombre':
+        juegos = juegos.order_by('nombre')
+    else:  # recientes por defecto
+        juegos = juegos.order_by('-fecha_creacion')
+    
+    return render(request, 'tienda/juegos.html', {
+        'juegos': juegos,
+        'categoria': categoria,
+        'orden_actual': orden
+    })
 
 def ofertas_view(request):
-    return render(request, 'tienda/ofertas.html')
+    juegos = Juego.objects.filter(descuento__gt=0)
+    return render(request, 'tienda/ofertas.html', {'juegos': juegos})
 
 @login_required
 def carrito_view(request):

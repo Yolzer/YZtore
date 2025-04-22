@@ -3,22 +3,22 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager, User, Grou
 from django.utils.translation import gettext_lazy as _
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.conf import settings
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, username, password=None, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError(_('El Email es obligatorio'))
+            raise ValueError('El email es obligatorio')
         email = self.normalize_email(email)
-        user = self.model(email=email, username=username, **extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password=None, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
-        return self.create_user(email, username, password, **extra_fields)
+        return self.create_user(email, password, **extra_fields)
 
 class Role(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
@@ -34,19 +34,17 @@ class Role(models.Model):
 
 class CustomUser(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
-    nombre = models.CharField(max_length=100, null=True, blank=True)
-    apellido = models.CharField(max_length=100, null=True, blank=True)
-    rol = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    username = models.CharField(max_length=150, unique=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-
-    class Meta:
-        db_table = 'usuarios'
 
     def __str__(self):
         return self.email
@@ -130,13 +128,10 @@ class PedidoItem(models.Model):
         db_table = 'pedido_items'
 
 class TokenRecuperacion(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    token = models.CharField(max_length=32, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.CharField(max_length=100, unique=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_expiracion = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'tokens_recuperacion'
 
     def __str__(self):
         return f"Token para {self.user.email}"
@@ -147,7 +142,7 @@ class PerfilUsuario(models.Model):
         ('admin', 'Administrador'),
     )
     
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     rol = models.CharField(max_length=20, choices=ROLES, default='cliente')
     telefono = models.CharField(max_length=15, blank=True)
     direccion = models.TextField(blank=True)
@@ -158,7 +153,7 @@ class PerfilUsuario(models.Model):
     def __str__(self):
         return f"{self.usuario.username} - {self.rol}"
 
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def crear_perfil_usuario(sender, instance, created, **kwargs):
     if created:
         PerfilUsuario.objects.create(usuario=instance)
@@ -166,6 +161,44 @@ def crear_perfil_usuario(sender, instance, created, **kwargs):
         grupo_cliente = Group.objects.get_or_create(name='Cliente')[0]
         instance.groups.add(grupo_cliente)
 
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def guardar_perfil_usuario(sender, instance, **kwargs):
-    instance.perfilusuario.save() 
+    instance.perfilusuario.save()
+
+class Juego(models.Model):
+    CATEGORIAS = (
+        ('accion', 'Acción'),
+        ('aventura', 'Aventura'),
+        ('rpg', 'RPG'),
+        ('estrategia', 'Estrategia'),
+        ('deportes', 'Deportes'),
+        ('carreras', 'Carreras'),
+        ('shooter', 'Shooter'),
+        ('indie', 'Indie'),
+    )
+
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField()
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_original = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    descuento = models.IntegerField(default=0)
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS)
+    imagen = models.ImageField(upload_to='juegos/')
+    fecha_lanzamiento = models.DateField()
+    desarrollador = models.CharField(max_length=100)
+    plataforma = models.CharField(max_length=50)
+    stock = models.IntegerField(default=0)
+    destacado = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.nombre
+
+    def precio_con_descuento(self):
+        if self.descuento > 0:
+            return self.precio - (self.precio * self.descuento / 100)
+        return self.precio
+
+    class Meta:
+        ordering = ['-fecha_creacion'] 

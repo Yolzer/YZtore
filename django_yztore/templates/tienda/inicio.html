@@ -4,26 +4,70 @@
 
 {% block content %}
 <!-- Hero Section -->
-<div class="hero-section text-center py-5 bg-dark text-light rounded mb-4">
-    <h1 class="display-4">Bienvenido a YZtore</h1>
-    <p class="lead">Tu tienda de videojuegos favorita</p>
+<div class="hero-section bg-dark text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4">Bienvenido a YZtore</h1>
+                <p class="lead">Tu tienda de videojuegos favorita con las mejores ofertas y los últimos lanzamientos.</p>
+                <a href="{% url 'tienda:juegos' %}" class="btn btn-primary btn-lg">Explorar Juegos</a>
+            </div>
+            <div class="col-md-6">
+                <img src="https://via.placeholder.com/600x400" alt="Hero Image" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Productos Destacados -->
-<section class="mb-5">
-    <h2 class="mb-4">Productos Destacados</h2>
-    <div class="row" id="productosDestacados">
-        <!-- Los productos se cargarán dinámicamente -->
+<!-- Juegos Destacados -->
+<div class="container mb-5">
+    <h2 class="mb-4">Juegos Destacados</h2>
+    <div class="row">
+        {% for juego in juegos_destacados %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <img src="{{ juego.imagen.url }}" class="card-img-top" alt="{{ juego.nombre }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ juego.nombre }}</h5>
+                        <p class="card-text">{{ juego.descripcion|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0">${{ juego.precio }}</span>
+                            <a href="#" class="btn btn-primary">Ver Detalles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
-</section>
+</div>
 
 <!-- Ofertas Especiales -->
-<section class="mb-5">
+<div class="container mb-5">
     <h2 class="mb-4">Ofertas Especiales</h2>
-    <div class="row" id="ofertasEspeciales">
-        <!-- Las ofertas se cargarán dinámicamente -->
+    <div class="row">
+        {% for juego in juegos_ofertas %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="position-relative">
+                        <img src="{{ juego.imagen.url }}" class="card-img-top" alt="{{ juego.nombre }}">
+                        <span class="position-absolute top-0 end-0 bg-danger text-white p-2">-{{ juego.descuento }}%</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ juego.nombre }}</h5>
+                        <p class="card-text">{{ juego.descripcion|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-decoration-line-through text-muted">${{ juego.precio_original }}</span>
+                                <span class="h5 mb-0 ms-2 text-danger">${{ juego.precio_con_descuento }}</span>
+                            </div>
+                            <a href="#" class="btn btn-primary">Ver Detalles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
-</section>
+</div>
 {% endblock %}
 
 {% block extra_js %}

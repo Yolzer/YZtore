@@ -3,22 +3,100 @@
 {% block title %}Juegos - YZtore{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-6">
-        <h1>Catálogo de Juegos</h1>
-    </div>
-    <div class="col-md-6">
-        <div class="input-group">
-            <input type="text" class="form-control" placeholder="Buscar juegos..." id="buscarJuego">
-            <button class="btn btn-outline-secondary" type="button">
-                <i class="bi bi-search"></i>
-            </button>
+<div class="container py-5">
+    <div class="row">
+        <!-- Filtros -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Categorías</h6>
+                    <div class="list-group">
+                        <a href="{% url 'tienda:juegos' %}?orden={{ orden_actual }}" class="list-group-item list-group-item-action {% if not categoria %}active{% endif %}">
+                            Todos
+                        </a>
+                        <a href="{% url 'tienda:juegos' %}?categoria=accion&orden={{ orden_actual }}" class="list-group-item list-group-item-action {% if categoria == 'accion' %}active{% endif %}">
+                            Acción
+                        </a>
+                        <a href="{% url 'tienda:juegos' %}?categoria=aventura&orden={{ orden_actual }}" class="list-group-item list-group-item-action {% if categoria == 'aventura' %}active{% endif %}">
+                            Aventura
+                        </a>
+                        <a href="{% url 'tienda:juegos' %}?categoria=rpg&orden={{ orden_actual }}" class="list-group-item list-group-item-action {% if categoria == 'rpg' %}active{% endif %}">
+                            RPG
+                        </a>
+                        <a href="{% url 'tienda:juegos' %}?categoria=estrategia&orden={{ orden_actual }}" class="list-group-item list-group-item-action {% if categoria == 'estrategia' %}active{% endif %}">
+                            Estrategia
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Juegos -->
+        <div class="col-md-9">
+            <div class="row mb-4">
+                <div class="col">
+                    <h2>{% if categoria %}{{ categoria|title }}{% else %}Todos los Juegos{% endif %}</h2>
+                </div>
+                <div class="col-auto">
+                    <select class="form-select" onchange="window.location.href=this.value">
+                        <option value="{% url 'tienda:juegos' %}?categoria={{ categoria|default:'' }}&orden=recientes" {% if orden_actual == 'recientes' %}selected{% endif %}>
+                            Más Recientes
+                        </option>
+                        <option value="{% url 'tienda:juegos' %}?categoria={{ categoria|default:'' }}&orden=precio_asc" {% if orden_actual == 'precio_asc' %}selected{% endif %}>
+                            Precio: Menor a Mayor
+                        </option>
+                        <option value="{% url 'tienda:juegos' %}?categoria={{ categoria|default:'' }}&orden=precio_desc" {% if orden_actual == 'precio_desc' %}selected{% endif %}>
+                            Precio: Mayor a Menor
+                        </option>
+                        <option value="{% url 'tienda:juegos' %}?categoria={{ categoria|default:'' }}&orden=nombre" {% if orden_actual == 'nombre' %}selected{% endif %}>
+                            Nombre
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                {% for juego in juegos %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            {% if juego.descuento > 0 %}
+                                <div class="position-relative">
+                                    <img src="{{ juego.imagen.url }}" class="card-img-top" alt="{{ juego.nombre }}">
+                                    <span class="position-absolute top-0 end-0 bg-danger text-white p-2">-{{ juego.descuento }}%</span>
+                                </div>
+                            {% else %}
+                                <img src="{{ juego.imagen.url }}" class="card-img-top" alt="{{ juego.nombre }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ juego.nombre }}</h5>
+                                <p class="card-text">{{ juego.descripcion|truncatewords:20 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    {% if juego.descuento > 0 %}
+                                        <div>
+                                            <span class="text-decoration-line-through text-muted">${{ juego.precio_original }}</span>
+                                            <span class="h5 mb-0 ms-2 text-danger">${{ juego.precio_con_descuento }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="h5 mb-0">${{ juego.precio }}</span>
+                                    {% endif %}
+                                    <a href="#" class="btn btn-primary">Ver Detalles</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            No se encontraron juegos en esta categoría.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
-</div>
-
-<div class="row" id="listaJuegos">
-    <!-- Los juegos se cargarán dinámicamente -->
 </div>
 {% endblock %}
 
