@@ -1,0 +1,33 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Inicio - YZtore{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center py-5 bg-dark text-light rounded mb-4">
+    <h1 class="display-4">Bienvenido a YZtore</h1>
+    <p class="lead">Tu tienda de videojuegos favorita</p>
+</div>
+
+<!-- Productos Destacados -->
+<section class="mb-5">
+    <h2 class="mb-4">Productos Destacados</h2>
+    <div class="row" id="productosDestacados">
+        <!-- Los productos se cargarán dinámicamente -->
+    </div>
+</section>
+
+<!-- Ofertas Especiales -->
+<section class="mb-5">
+    <h2 class="mb-4">Ofertas Especiales</h2>
+    <div class="row" id="ofertasEspeciales">
+        <!-- Las ofertas se cargarán dinámicamente -->
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Aquí irá el código JavaScript para cargar los productos y ofertas
+</script>
+{% endblock %} 
