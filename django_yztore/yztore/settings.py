@@ -62,6 +62,10 @@ DATABASES = {
         'PASSWORD': 'Yolzer1234',
         'HOST': '192.168.1.88',
         'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        },
     }
 }
 
@@ -104,6 +108,33 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Login settings
-LOGIN_REDIRECT_URL = 'inicio'
-LOGOUT_REDIRECT_URL = 'login'
-LOGIN_URL = 'login' 
+LOGIN_REDIRECT_URL = 'tienda:inicio'
+LOGOUT_REDIRECT_URL = 'tienda:inicio'
+LOGIN_URL = 'tienda:login'
+
+# Usuario personalizado
+AUTH_USER_MODEL = 'tienda.CustomUser'
+
+# Configuración de autenticación
+LOGIN_URL = 'tienda:login'
+LOGIN_REDIRECT_URL = 'tienda:inicio'
+LOGOUT_REDIRECT_URL = 'tienda:inicio'
+
+# Configuración de contraseñas
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+] 
