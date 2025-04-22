@@ -141,8 +141,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Configuración de correo electrónico
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.office365.com'  # Cambiado para Hotmail/Outlook
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'tu_correo@gmail.com'  # Reemplazar con tu correo
-EMAIL_HOST_PASSWORD = 'tu_contraseña'    # Reemplazar con tu contraseña de aplicación 
+EMAIL_HOST_USER = 'yolzer@hotmail.com'
+EMAIL_HOST_PASSWORD = 'Yolzer1234'
+
+# ... existing code ... 

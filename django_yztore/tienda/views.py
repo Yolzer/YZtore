@@ -12,14 +12,14 @@ from .models import CustomUser, Role, TokenRecuperacion
 def inicio(request):
     return render(request, 'tienda/inicio.html')
 
-def juegos(request):
+def juegos_view(request):
     return render(request, 'tienda/juegos.html')
 
-def ofertas(request):
+def ofertas_view(request):
     return render(request, 'tienda/ofertas.html')
 
 @login_required
-def carrito(request):
+def carrito_view(request):
     return render(request, 'tienda/carrito.html')
 
 def login_view(request):
