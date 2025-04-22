@@ -1,6 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager, User, Group
 from django.utils.translation import gettext_lazy as _
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -137,4 +139,33 @@ class TokenRecuperacion(models.Model):
         db_table = 'tokens_recuperacion'
 
     def __str__(self):
-        return f"Token para {self.user.email}" 
+        return f"Token para {self.user.email}"
+
+class PerfilUsuario(models.Model):
+    ROLES = (
+        ('cliente', 'Cliente'),
+        ('admin', 'Administrador'),
+    )
+    
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    rol = models.CharField(max_length=20, choices=ROLES, default='cliente')
+    telefono = models.CharField(max_length=15, blank=True)
+    direccion = models.TextField(blank=True)
+    fecha_nacimiento = models.DateField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.rol}"
+
+@receiver(post_save, sender=User)
+def crear_perfil_usuario(sender, instance, created, **kwargs):
+    if created:
+        PerfilUsuario.objects.create(usuario=instance)
+        # Asignar grupo por defecto
+        grupo_cliente = Group.objects.get_or_create(name='Cliente')[0]
+        instance.groups.add(grupo_cliente)
+
+@receiver(post_save, sender=User)
+def guardar_perfil_usuario(sender, instance, **kwargs):
+    instance.perfilusuario.save() 
