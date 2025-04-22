@@ -125,4 +125,16 @@ class PedidoItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'pedido_items' 
+        db_table = 'pedido_items'
+
+class TokenRecuperacion(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    token = models.CharField(max_length=32, unique=True)
+    fecha_expiracion = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'tokens_recuperacion'
+
+    def __str__(self):
+        return f"Token para {self.user.email}" 
