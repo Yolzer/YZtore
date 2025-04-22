@@ -56,12 +56,12 @@ WSGI_APPLICATION = 'yztore.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.oracle',
-        'NAME': 'tu_servicio_oracle',
-        'USER': 'tu_usuario',
-        'PASSWORD': 'tu_contraseña',
-        'HOST': 'tu_host',
-        'PORT': '1521',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'MySQL99',
+        'USER': 'Yolzer',
+        'PASSWORD': 'Yolzer1234',
+        'HOST': '192.168.1.88',
+        'PORT': '3306',
     }
 }
 
