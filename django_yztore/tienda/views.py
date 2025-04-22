@@ -10,6 +10,7 @@ from datetime import timedelta
 from .models import CustomUser, Role, TokenRecuperacion
 from .forms import RegistroForm
 from .models import PerfilUsuario
+from .decorators import admin_required
 
 def inicio(request):
     return render(request, 'tienda/inicio.html')
@@ -132,4 +133,26 @@ def restablecer_password_view(request, token):
         return render(request, 'tienda/restablecer_password.html')
     except TokenRecuperacion.DoesNotExist:
         messages.error(request, 'El enlace de recuperación no es válido o ha expirado')
-        return redirect('tienda:recuperar_password') 
+        return redirect('tienda:recuperar_password')
+
+@admin_required
+def gestion_usuarios(request):
+    usuarios = CustomUser.objects.all()
+    return render(request, 'tienda/admin/gestion_usuarios.html', {'usuarios': usuarios})
+
+@admin_required
+def cambiar_rol_usuario(request, user_id):
+    if request.method == 'POST':
+        try:
+            usuario = CustomUser.objects.get(id=user_id)
+            nuevo_rol = request.POST.get('rol')
+            if nuevo_rol in ['cliente', 'admin']:
+                perfil = usuario.perfilusuario
+                perfil.rol = nuevo_rol
+                perfil.save()
+                messages.success(request, f'Rol de {usuario.username} actualizado correctamente')
+            else:
+                messages.error(request, 'Rol no válido')
+        except CustomUser.DoesNotExist:
+            messages.error(request, 'Usuario no encontrado')
+    return redirect('tienda:gestion_usuarios') 
