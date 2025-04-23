@@ -7,10 +7,12 @@ from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from datetime import timedelta
+from django.views.decorators.csrf import csrf_protect
+from django.core.exceptions import ValidationError
 from .models import CustomUser, Role, TokenRecuperacion, Juego, Carrito, CarritoItem
 from .forms import RegistroForm
 from .models import PerfilUsuario
-from .decorators import admin_required
+from .decorators import admin_required, rate_limit_login, sanitize_input
 
 def inicio(request):
     juegos_destacados = Juego.objects.filter(destacado=True)[:3]
@@ -54,10 +56,18 @@ def ofertas_view(request):
 def carrito_view(request):
     return render(request, 'tienda/carrito.html')
 
+@csrf_protect
+@rate_limit_login(attempts=5, timeout=900)  # 5 intentos en 15 minutos
+@sanitize_input
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        
+        if not email or not password:
+            messages.error(request, 'Por favor, complete todos los campos')
+            return render(request, 'tienda/login.html')
+            
         user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
@@ -66,14 +76,19 @@ def login_view(request):
             messages.error(request, 'Email o contraseña incorrectos')
     return render(request, 'tienda/login.html')
 
+@csrf_protect
+@sanitize_input
 def registro(request):
     if request.method == 'POST':
         form = RegistroForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, '¡Registro exitoso!')
-            return redirect('tienda:inicio')
+            try:
+                user = form.save()
+                login(request, user)
+                messages.success(request, '¡Registro exitoso!')
+                return redirect('tienda:inicio')
+            except ValidationError as e:
+                messages.error(request, str(e))
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -87,22 +102,32 @@ def logout_view(request):
     logout(request)
     return redirect('tienda:inicio')
 
+@csrf_protect
 @login_required
 def perfil(request):
     perfil = request.user.perfilusuario
     if request.method == 'POST':
         form = PerfilForm(request.POST, instance=perfil)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Perfil actualizado correctamente')
-            return redirect('tienda:perfil')
+            try:
+                form.save()
+                messages.success(request, 'Perfil actualizado correctamente')
+                return redirect('tienda:perfil')
+            except ValidationError as e:
+                messages.error(request, str(e))
     else:
         form = PerfilForm(instance=perfil)
     return render(request, 'tienda/perfil.html', {'form': form})
 
+@csrf_protect
+@sanitize_input
 def recuperar_password_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
+        email = request.POST.get('email', '').strip()
+        if not email:
+            messages.error(request, 'Por favor, ingrese su correo electrónico')
+            return render(request, 'tienda/recuperar_password.html')
+            
         try:
             user = CustomUser.objects.get(email=email)
             # Generar token
@@ -133,6 +158,8 @@ def recuperar_password_view(request):
     
     return render(request, 'tienda/recuperar_password.html')
 
+@csrf_protect
+@sanitize_input
 def restablecer_password_view(request, token):
     try:
         token_recuperacion = TokenRecuperacion.objects.get(
@@ -141,11 +168,19 @@ def restablecer_password_view(request, token):
         )
         
         if request.method == 'POST':
-            password1 = request.POST.get('password1')
-            password2 = request.POST.get('password2')
+            password1 = request.POST.get('password1', '').strip()
+            password2 = request.POST.get('password2', '').strip()
             
+            if not password1 or not password2:
+                messages.error(request, 'Por favor, complete todos los campos')
+                return render(request, 'tienda/restablecer_password.html')
+                
             if password1 != password2:
                 messages.error(request, 'Las contraseñas no coinciden')
+                return render(request, 'tienda/restablecer_password.html')
+            
+            if len(password1) < 8:
+                messages.error(request, 'La contraseña debe tener al menos 8 caracteres')
                 return render(request, 'tienda/restablecer_password.html')
             
             # Cambiar contraseña
