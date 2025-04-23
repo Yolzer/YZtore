@@ -18,19 +18,42 @@ from .models import CustomUser, Role, TokenRecuperacion, Juego, Carrito, Carrito
 from .forms import RegistroForm, PerfilForm
 from .decorators import admin_required, rate_limit_login, sanitize_input
 from .services import ProductoService, CarritoService, UsuarioService
+from django.views.decorators.cache import cache_page
+from django.db.models import Prefetch
+from django.core.paginator import Paginator
+from django.core.cache import cache
 
 class InicioView(ListView):
     template_name = 'tienda/inicio.html'
     context_object_name = 'productos'
+    paginate_by = 12
+
+    @method_decorator(cache_page(60 * 15))  # Cache por 15 minutos
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        # Optimizar consulta usando select_related y prefetch_related
+        return Producto.objects.select_related('categoria').prefetch_related(
+            Prefetch('carritoitem_set', queryset=CarritoItem.objects.select_related('carrito'))
+        ).filter(destacado=True)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['productos_destacados'] = ProductoService.obtener_productos_destacados()
-        context['productos_ofertas'] = ProductoService.obtener_productos_ofertas()
-        return context
+        # Cachear productos destacados y ofertas
+        productos_destacados = cache.get('productos_destacados')
+        if not productos_destacados:
+            productos_destacados = ProductoService.obtener_productos_destacados()
+            cache.set('productos_destacados', productos_destacados, 60 * 15)  # 15 minutos
 
-    def get_queryset(self):
-        return Producto.objects.none()
+        productos_ofertas = cache.get('productos_ofertas')
+        if not productos_ofertas:
+            productos_ofertas = ProductoService.obtener_productos_ofertas()
+            cache.set('productos_ofertas', productos_ofertas, 60 * 15)  # 15 minutos
+
+        context['productos_destacados'] = productos_destacados
+        context['productos_ofertas'] = productos_ofertas
+        return context
 
 class ProductoListView(ListView):
     model = Producto
@@ -41,7 +64,25 @@ class ProductoListView(ListView):
     def get_queryset(self):
         categoria = self.request.GET.get('categoria')
         orden = self.request.GET.get('orden', 'recientes')
-        return ProductoService.filtrar_productos(categoria, orden)
+        
+        # Optimizar consulta
+        queryset = Producto.objects.select_related('categoria').prefetch_related(
+            Prefetch('carritoitem_set', queryset=CarritoItem.objects.select_related('carrito'))
+        )
+        
+        if categoria:
+            queryset = queryset.filter(categoria=categoria)
+        
+        if orden == 'precio_asc':
+            queryset = queryset.order_by('precio')
+        elif orden == 'precio_desc':
+            queryset = queryset.order_by('-precio')
+        elif orden == 'nombre':
+            queryset = queryset.order_by('nombre')
+        else:
+            queryset = queryset.order_by('-fecha_creacion')
+        
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -53,6 +94,16 @@ class ProductoDetailView(DetailView):
     model = Producto
     template_name = 'tienda/detalle_producto.html'
     context_object_name = 'producto'
+
+    def get_queryset(self):
+        # Optimizar consulta para el detalle
+        return Producto.objects.select_related('categoria').prefetch_related(
+            Prefetch('carritoitem_set', queryset=CarritoItem.objects.select_related('carrito'))
+        )
+
+    @method_decorator(cache_page(60 * 60))  # Cache por 1 hora
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 class PerfilUpdateView(LoginRequiredMixin, UpdateView):
     model = PerfilUsuario

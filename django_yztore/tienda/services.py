@@ -5,46 +5,58 @@ from django.conf import settings
 from django.utils.crypto import get_random_string
 from datetime import timedelta
 from .models import Producto, Carrito, CarritoItem, TokenRecuperacion, CustomUser
+from django.core.cache import cache
+from django.db.models import Prefetch, F, Sum
 
 class ProductoService:
     @staticmethod
     def obtener_productos_destacados(limit=3):
-        return Producto.objects.filter(destacado=True)[:limit]
+        return Producto.objects.select_related('categoria').prefetch_related(
+            Prefetch('carritoitem_set', queryset=CarritoItem.objects.select_related('carrito'))
+        ).filter(destacado=True)[:limit]
 
     @staticmethod
     def obtener_productos_ofertas(limit=3):
-        return Producto.objects.filter(descuento__gt=0)[:limit]
+        return Producto.objects.select_related('categoria').prefetch_related(
+            Prefetch('carritoitem_set', queryset=CarritoItem.objects.select_related('carrito'))
+        ).filter(descuento__gt=0)[:limit]
 
     @staticmethod
     def filtrar_productos(categoria=None, orden='recientes'):
-        productos = Producto.objects.all()
+        queryset = Producto.objects.select_related('categoria').prefetch_related(
+            Prefetch('carritoitem_set', queryset=CarritoItem.objects.select_related('carrito'))
+        )
         
         if categoria:
-            productos = productos.filter(categoria=categoria)
+            queryset = queryset.filter(categoria=categoria)
         
         if orden == 'precio_asc':
-            productos = productos.order_by('precio')
+            queryset = queryset.order_by('precio')
         elif orden == 'precio_desc':
-            productos = productos.order_by('-precio')
+            queryset = queryset.order_by('-precio')
         elif orden == 'nombre':
-            productos = productos.order_by('nombre')
+            queryset = queryset.order_by('nombre')
         else:
-            productos = productos.order_by('-fecha_creacion')
+            queryset = queryset.order_by('-fecha_creacion')
         
-        return productos
+        return queryset
 
 class CarritoService:
     @staticmethod
     def obtener_carrito_usuario(usuario):
-        carrito, created = Carrito.objects.get_or_create(usuario=usuario)
+        carrito, created = Carrito.objects.select_related('usuario').prefetch_related(
+            Prefetch('carritoitem_set', 
+                    queryset=CarritoItem.objects.select_related('producto')
+            )
+        ).get_or_create(usuario=usuario)
         return carrito
 
     @staticmethod
     def agregar_producto_carrito(usuario, producto_id, cantidad=1):
-        producto = Producto.objects.get(id=producto_id)
+        producto = Producto.objects.select_related('categoria').get(id=producto_id)
         carrito = CarritoService.obtener_carrito_usuario(usuario)
         
-        carrito_item, created = CarritoItem.objects.get_or_create(
+        carrito_item, created = CarritoItem.objects.select_related('producto').get_or_create(
             carrito=carrito,
             producto=producto,
             defaults={'cantidad': cantidad, 'precio_unitario': producto.precio}
@@ -58,8 +70,9 @@ class CarritoService:
 
     @staticmethod
     def calcular_total_carrito(carrito):
-        items = CarritoItem.objects.filter(carrito=carrito)
-        return sum(item.cantidad * item.precio_unitario for item in items)
+        return CarritoItem.objects.filter(carrito=carrito).aggregate(
+            total=Sum(F('cantidad') * F('precio_unitario'))
+        )['total'] or 0
 
 class UsuarioService:
     @staticmethod
