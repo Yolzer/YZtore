@@ -81,7 +81,7 @@ class Producto(models.Model):
     ]
 
     nombre = models.CharField(max_length=255)
-    descripcion = models.TextField()
+    descripcion = models.TextField(default='', blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     precio_original = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     descuento = models.IntegerField(default=0)
