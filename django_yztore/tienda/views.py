@@ -9,55 +9,66 @@ from django.utils import timezone
 from datetime import timedelta
 from django.views.decorators.csrf import csrf_protect
 from django.core.exceptions import ValidationError
-from .models import CustomUser, Role, TokenRecuperacion, Juego, Carrito, CarritoItem
-from .forms import RegistroForm
-from .models import PerfilUsuario
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.decorators.csrf import csrf_protect
+from django.utils.decorators import method_decorator
+from .models import CustomUser, Role, TokenRecuperacion, Juego, Carrito, CarritoItem, Producto, PerfilUsuario
+from .forms import RegistroForm, PerfilForm
 from .decorators import admin_required, rate_limit_login, sanitize_input
+from .services import ProductoService, CarritoService, UsuarioService
 
-def inicio(request):
-    juegos_destacados = Juego.objects.filter(destacado=True)[:3]
-    juegos_ofertas = Juego.objects.filter(descuento__gt=0)[:3]
-    return render(request, 'tienda/inicio.html', {
-        'juegos_destacados': juegos_destacados,
-        'juegos_ofertas': juegos_ofertas
-    })
+class InicioView(ListView):
+    template_name = 'tienda/inicio.html'
+    context_object_name = 'productos'
 
-def juegos_view(request):
-    # Obtener parámetros de filtrado
-    categoria = request.GET.get('categoria')
-    orden = request.GET.get('orden', 'recientes')
-    
-    # Filtrar por categoría
-    juegos = Juego.objects.all()
-    if categoria:
-        juegos = juegos.filter(categoria=categoria)
-    
-    # Ordenar resultados
-    if orden == 'precio_asc':
-        juegos = juegos.order_by('precio')
-    elif orden == 'precio_desc':
-        juegos = juegos.order_by('-precio')
-    elif orden == 'nombre':
-        juegos = juegos.order_by('nombre')
-    else:  # recientes por defecto
-        juegos = juegos.order_by('-fecha_creacion')
-    
-    return render(request, 'tienda/juegos.html', {
-        'juegos': juegos,
-        'categoria': categoria,
-        'orden_actual': orden
-    })
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['productos_destacados'] = ProductoService.obtener_productos_destacados()
+        context['productos_ofertas'] = ProductoService.obtener_productos_ofertas()
+        return context
 
-def ofertas_view(request):
-    juegos = Juego.objects.filter(descuento__gt=0)
-    return render(request, 'tienda/ofertas.html', {'juegos': juegos})
+    def get_queryset(self):
+        return Producto.objects.none()
 
-@login_required
-def carrito_view(request):
-    return render(request, 'tienda/carrito.html')
+class ProductoListView(ListView):
+    model = Producto
+    template_name = 'tienda/productos.html'
+    context_object_name = 'productos'
+    paginate_by = 12
+
+    def get_queryset(self):
+        categoria = self.request.GET.get('categoria')
+        orden = self.request.GET.get('orden', 'recientes')
+        return ProductoService.filtrar_productos(categoria, orden)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categoria'] = self.request.GET.get('categoria')
+        context['orden_actual'] = self.request.GET.get('orden', 'recientes')
+        return context
+
+class ProductoDetailView(DetailView):
+    model = Producto
+    template_name = 'tienda/detalle_producto.html'
+    context_object_name = 'producto'
+
+class PerfilUpdateView(LoginRequiredMixin, UpdateView):
+    model = PerfilUsuario
+    form_class = PerfilForm
+    template_name = 'tienda/perfil.html'
+    success_url = reverse_lazy('tienda:perfil')
+
+    def get_object(self):
+        return self.request.user.perfilusuario
+
+    @method_decorator(csrf_protect)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
 @csrf_protect
-@rate_limit_login(attempts=5, timeout=900)  # 5 intentos en 15 minutos
+@rate_limit_login(attempts=5, timeout=900)
 @sanitize_input
 def login_view(request):
     if request.method == 'POST':
@@ -96,6 +107,15 @@ def registro(request):
     else:
         form = RegistroForm()
     return render(request, 'tienda/registro.html', {'form': form})
+
+@login_required
+def carrito_view(request):
+    carrito = CarritoService.obtener_carrito_usuario(request.user)
+    total = CarritoService.calcular_total_carrito(carrito)
+    return render(request, 'tienda/carrito.html', {
+        'carrito': carrito,
+        'total': total
+    })
 
 @login_required
 def logout_view(request):

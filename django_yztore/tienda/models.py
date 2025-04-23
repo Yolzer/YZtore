@@ -58,28 +58,64 @@ class Categoria(models.Model):
 
     class Meta:
         db_table = 'categorias'
+        verbose_name = 'Categoría'
+        verbose_name_plural = 'Categorías'
 
     def __str__(self):
         return self.nombre
 
 class Producto(models.Model):
+    TIPO_CHOICES = [
+        ('juego', 'Juego'),
+        ('consola', 'Consola'),
+        ('accesorio', 'Accesorio'),
+    ]
+
+    CATEGORIA_CHOICES = [
+        ('accion', 'Acción'),
+        ('aventura', 'Aventura'),
+        ('rpg', 'RPG'),
+        ('estrategia', 'Estrategia'),
+        ('deportes', 'Deportes'),
+        ('simulacion', 'Simulación'),
+    ]
+
     nombre = models.CharField(max_length=255)
-    descripcion = models.TextField(null=True, blank=True)
+    descripcion = models.TextField()
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     precio_original = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     descuento = models.IntegerField(default=0)
     stock = models.IntegerField(default=0)
-    imagen = models.CharField(max_length=255, null=True, blank=True)
-    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True)
+    imagen = models.ImageField(upload_to='productos/', null=True, blank=True)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='juego')
+    categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='accion')
+    destacado = models.BooleanField(default=False)
     plataforma = models.CharField(max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'productos'
+        ordering = ['-fecha_creacion']
+        verbose_name = 'Producto'
+        verbose_name_plural = 'Productos'
 
     def __str__(self):
         return self.nombre
+
+    @property
+    def precio_con_descuento(self):
+        if self.descuento > 0 and self.precio_original:
+            descuento_decimal = Decimal(str(self.descuento)) / Decimal('100')
+            return self.precio_original * (Decimal('1') - descuento_decimal)
+        return self.precio
+
+    def actualizar_stock(self, cantidad):
+        """Actualiza el stock del producto de manera segura"""
+        if self.stock + cantidad < 0:
+            raise ValueError("No hay suficiente stock disponible")
+        self.stock += cantidad
+        self.save()
 
 class Carrito(models.Model):
     usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
