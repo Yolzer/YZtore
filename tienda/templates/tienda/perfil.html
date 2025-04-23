@@ -1,0 +1,186 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Mi Perfil - YZStore{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Menú Lateral -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                        <h5 class="mt-2">{{ user.get_full_name|default:user.username }}</h5>
+                        <p class="text-muted">{{ user.email }}</p>
+                    </div>
+                    <div class="list-group">
+                        <a href="#datos-personales" class="list-group-item list-group-item-action active" 
+                           data-bs-toggle="tab">
+                            <i class="fas fa-user me-2"></i>Datos Personales
+                        </a>
+                        <a href="#pedidos" class="list-group-item list-group-item-action" 
+                           data-bs-toggle="tab">
+                            <i class="fas fa-shopping-bag me-2"></i>Mis Pedidos
+                        </a>
+                        <a href="#direcciones" class="list-group-item list-group-item-action" 
+                           data-bs-toggle="tab">
+                            <i class="fas fa-map-marker-alt me-2"></i>Direcciones
+                        </a>
+                        <a href="#cambiar-password" class="list-group-item list-group-item-action" 
+                           data-bs-toggle="tab">
+                            <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Datos Personales -->
+                <div class="tab-pane fade show active" id="datos-personales">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Datos Personales</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'perfil' %}">
+                                {% csrf_token %}
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="first_name" class="form-label">Nombre</label>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" 
+                                               value="{{ user.first_name }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="last_name" class="form-label">Apellido</label>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" 
+                                               value="{{ user.last_name }}">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ user.email }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Cambios
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mis Pedidos -->
+                <div class="tab-pane fade" id="pedidos">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Mis Pedidos</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if pedidos %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>N° Pedido</th>
+                                            <th>Fecha</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for pedido in pedidos %}
+                                        <tr>
+                                            <td>#{{ pedido.id }}</td>
+                                            <td>{{ pedido.fecha_creacion|date:"d/m/Y" }}</td>
+                                            <td>${{ pedido.total }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ pedido.estado.color }}">
+                                                    {{ pedido.estado.nombre }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'detalle_pedido' pedido.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> Ver
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No tienes pedidos realizados</p>
+                                <a href="{% url 'catalogo' %}" class="btn btn-primary">
+                                    <i class="fas fa-shopping-cart"></i> Ir al Catálogo
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direcciones -->
+                <div class="tab-pane fade" id="direcciones">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Mis Direcciones</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for direccion in direcciones %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ direccion.nombre }}</h6>
+                                            <p class="card-text">
+                                                {{ direccion.direccion }}<br>
+                                                {{ direccion.ciudad }}, {{ direccion.codigo_postal }}<br>
+                                                Tel: {{ direccion.telefono }}
+                                            </p>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i> Editar
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i> Eliminar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button class="btn btn-primary mt-3">
+                                <i class="fas fa-plus"></i> Agregar Nueva Dirección
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cambiar Contraseña -->
+                <div class="tab-pane fade" id="cambiar-password">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Cambiar Contraseña</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-3">Para cambiar tu contraseña, haz clic en el botón de abajo:</p>
+                            <a href="{% url 'cambiar_password' %}" class="btn btn-primary">
+                                <i class="fas fa-key"></i> Ir a Cambiar Contraseña
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

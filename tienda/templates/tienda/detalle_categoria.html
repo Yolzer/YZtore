@@ -1,0 +1,64 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}{{ categoria.nombre }} - YZStore{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">{{ categoria.nombre }}</h2>
+                </div>
+                <div class="card-body">
+                    {% if categoria.imagen %}
+                    <img src="{{ categoria.imagen.url }}" alt="{{ categoria.nombre }}" class="img-fluid mb-3">
+                    {% endif %}
+                    
+                    <p class="lead">{{ categoria.descripcion }}</p>
+                    
+                    <div class="mt-4">
+                        <h3>Productos en esta categoría</h3>
+                        {% if categoria.producto_set.all %}
+                        <div class="row">
+                            {% for producto in categoria.producto_set.all %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    {% if producto.imagen %}
+                                    <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ producto.nombre }}</h5>
+                                        <p class="card-text">${{ producto.precio }}</p>
+                                        <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-primary">
+                                            Ver Detalles
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            No hay productos en esta categoría.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'lista_categorias' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                        {% if perms.tienda.change_categoria %}
+                        <a href="{% url 'editar_categoria' categoria.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

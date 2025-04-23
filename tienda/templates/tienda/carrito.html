@@ -1,0 +1,83 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Carrito - YZStore{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Carrito de Compras</h1>
+    
+    {% if carrito.items.all %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio Unitario</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in carrito.items.all %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}" 
+                                 class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                            <div class="ms-3">
+                                <h5 class="mb-0">{{ item.producto.nombre }}</h5>
+                                <small class="text-muted">{{ item.producto.categoria.nombre }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${{ item.producto.precio }}</td>
+                    <td>
+                        <form method="post" action="{% url 'agregar_al_carrito' item.producto.id %}" class="d-flex">
+                            {% csrf_token %}
+                            <input type="number" name="cantidad" value="{{ item.cantidad }}" 
+                                   min="1" max="{{ item.producto.stock }}" class="form-control form-control-sm" style="width: 70px;">
+                            <button type="submit" class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                        </form>
+                    </td>
+                    <td>${{ item.subtotal }}</td>
+                    <td>
+                        <a href="{% url 'eliminar_del_carrito' item.id %}" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                    <td><strong>${{ carrito.total }}</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Seguir comprando
+        </a>
+        <a href="{% url 'checkout' %}" class="btn btn-primary">
+            <i class="fas fa-shopping-bag"></i> Proceder al pago
+        </a>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+        <h3>Tu carrito está vacío</h3>
+        <p class="text-muted">Agrega productos para comenzar a comprar</p>
+        <a href="{% url 'catalogo' %}" class="btn btn-primary">
+            <i class="fas fa-store"></i> Ver catálogo
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

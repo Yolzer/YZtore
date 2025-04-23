@@ -1,0 +1,61 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Inicio - YZStore{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="bg-dark text-white p-5 rounded">
+                <h1 class="display-4">Bienvenido a YZStore</h1>
+                <p class="lead">Tu tienda de videojuegos favorita</p>
+                <a href="{% url 'catalogo' %}" class="btn btn-primary btn-lg">Explorar Catálogo</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categorías -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Categorías</h2>
+            <div class="row">
+                {% for categoria in categorias %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ categoria.nombre }}</h5>
+                            <p class="card-text">{{ categoria.descripcion }}</p>
+                            <a href="{% url 'catalogo' %}?categoria={{ categoria.id }}" class="btn btn-outline-primary">Ver Productos</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos Destacados -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Productos Destacados</h2>
+            <div class="row">
+                {% for producto in productos_destacados %}
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        {% if producto.imagen %}
+                        <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ producto.nombre }}</h5>
+                            <p class="card-text">${{ producto.precio }}</p>
+                            <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-primary">Ver Detalles</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

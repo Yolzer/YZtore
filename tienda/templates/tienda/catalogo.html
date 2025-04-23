@@ -1,0 +1,66 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Catálogo - YZStore{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Filtros -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Categorías</h6>
+                    <div class="list-group">
+                        <a href="{% url 'catalogo' %}" class="list-group-item list-group-item-action {% if not categoria_seleccionada %}active{% endif %}">
+                            Todas las categorías
+                        </a>
+                        {% for categoria in categorias %}
+                        <a href="{% url 'catalogo' %}?categoria={{ categoria.id }}" 
+                           class="list-group-item list-group-item-action {% if categoria_seleccionada == categoria.id|stringformat:'i' %}active{% endif %}">
+                            {{ categoria.nombre }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos -->
+        <div class="col-md-9">
+            <div class="row">
+                {% for producto in productos %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        {% if producto.imagen %}
+                        <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ producto.nombre }}</h5>
+                            <p class="card-text">{{ producto.descripcion|truncatewords:20 }}</p>
+                            <p class="card-text"><strong>${{ producto.precio }}</strong></p>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-primary">Ver Detalles</a>
+                                {% if user.is_authenticated %}
+                                <a href="{% url 'agregar_al_carrito' producto.id %}" class="btn btn-success">
+                                    <i class="fas fa-cart-plus"></i> Agregar
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No se encontraron productos en esta categoría.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
